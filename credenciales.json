@@ -1,0 +1,9 @@
+{
+    "user" : "root",
+    "password" : "root",
+    "driver" : "com.mysql.jdbc.Driver",
+    "url" : "jdbc:mysql://192.168.0.13:3306/sleep",
+    "host_docker" : "host.docker.internal",
+    "host_local" : "localhost",
+    "db" : "sleep"
+}
