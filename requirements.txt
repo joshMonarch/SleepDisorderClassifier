@@ -1,0 +1,8 @@
+mlflow==2.4
+pandas==2.0.2
+numpy==1.25.2
+torch==1.12.1
+xgboost==1.7.3
+scikit-learn==1.0.2
+pymysql==1.0.2
+jupyter==1.0.0
