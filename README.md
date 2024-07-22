@@ -1,40 +1,40 @@
 Sleep Disorder Classifier
 ===
-Este repositorio contiene un proyecto de clasificación de desórdenes del sueño, el cuál utiliza un [dataset](https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset) sintético y dos modelos para comparar sus resultados:
--  __XGBoost__: Algoritmo de ML que utiliza árboles de decisión como la base del aprendizaje y emplea técnicas de regularización para mejorar la generalización del modelo.
-- __Red neuronal artificial__: Modelo que simula el funcionamiento del cerebro humano. Está constituido por varios _perceptrones_ (neuronas artificiales) que forman capas. Son capaces de aprender patrones complejos de los datos.  
+This repository contains a sleep disorder classification project that uses a synthetic [dataset](https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset) and two models to compare their results:
+-  __XGBoost__: An ML algorithm that uses decision trees as the base of learning and employs regularization techniques to improve the model's generalization.
+- __Artificial Neural Network__: A model that simulates the functioning of the human brain. It is made up of several _perceptrons_ (artificial neurons) that form layers. They are capable of learning complex patterns from the data.  
 
-Además, administramos su ciclo de vida por medio de [MLflow](https://mlflow.org/).  
+Additionally, we manage its life cycle using [MLflow](https://mlflow.org/).  
  
  
-Preparación del entorno de trabajo  
+Setting Up the Work Environment  
 ---
-Para este proyecto es necesario:  
-- __MySQL__:dolphin:: Ingestaremos los datos procesados en una BD. Será necesario crear la base de datos con la instrucción `CREATE TABLE`.
-- __Docker__:whale2:: Levantaremos dos contenedores:
-  - __pyspark__: Un contenedor con la imagen de _jupyter/pyspark-notebook_, donde realizaremos la extracción, transformación y carga de datos en la BD. 
+For this project, you will need:  
+- __MySQL__:dolphin:: Ingestion of processed data into a database. You will need to create the database using the `CREATE TABLE` statement.
+- __Docker__:whale2:: Two containers will be launched:
+  - __pyspark__: Using the _jupyter/pyspark-notebook_ image. Here, it takes place the extraction, transformation, and loading of data into the database. 
 
-    Ejcución del contenedor (si no existe la imagen, se descargará automáticamente):
+    Running the container (if the image does not exist, it will be downloaded automatically):
     ```
-    docker run -p 127.0.0.1:8888:8888 -p 4040:4040 -v <ruta-a-la-carpeta-pyspark>:/home/jovyan/work --name pyspark -e DB_HOST=<IP-local> -e DB_USER=<usuario> -e DB_PASSWORD=<constraseña> -e DB_NAME=<nombre-BD> jupyter/pyspark-notebook
+    docker run -p 127.0.0.1:8888:8888 -p 4040:4040 -v <path-to-pyspark-folder>:/home/jovyan/work --name pyspark -e DB_HOST=<local-IP> -e DB_USER=<user> -e DB_PASSWORD=<password> -e DB_NAME=<db-name> jupyter/pyspark-notebook
     ```
-    A mayores, es necesario el Conector/J 8.0 en el contenedor para poder establecer una conexión con la BD. Después de descargar el .jar, se realizará la siguiente ejecución desde el directorio donde se guardó:
+    Additionally, the Connector/J 8.0 is needed in the container to establish a connection with the database. After downloading the .jar file, execute the following command from the directory where it is saved:
     ```
     docker cp mysql-connector-java-8.0.28.jar pyspark:/usr/local/spark-3.5.0-bin-hadoop3/jars/
     ```
-  - __mlflow__: Un contenedor con la imagen de _python_, en donde se registran los modelos, las métricas y parámetros con MLflow. La imagen es definida en el archivo _Dockerfile_.  
+  - __mlflow__: Using the _python_ image; models, metrics, and parameters are registered using MLflow. The image is defined in the _Dockerfile_.  
 
-    Construcción de la imagen:
+    Building the image:
     ```
     docker build -t python .
     ```  
-    Ejecución del contenedor:
+    Running the container:
     ```
-    docker run --rm -e DB_HOST=<IP-local> -e DB_USER=<usuario> -e DB_PASSWORD=<constraseña> -e DB_NAME=<nombre-BD> --name mlflow python
+    docker run --rm -e DB_HOST=<local-IP> -e DB_USER=<user> -e DB_PASSWORD=<password> -e DB_NAME=<db-name> --name mlflow python
     ```
-    En el archivo _requirements.txt_ están definidas todas las dependencias necesarias para esta imagen.  
+    The _requirements.txt_ file defines all the dependencies needed for this image.  
 
-Esquema de directorios
+Directory Structure
 ---
 ```
 / SleepDisorderClassifier
@@ -48,7 +48,7 @@ Esquema de directorios
 │   └── Sleep_health_and_lifestyle_dataset.csv
 ├── SQL_scripts
 │   ├── PKs_FKs.sql
-│   └── raneg_restrictions.sql
+│   └── range_restrictions.sql
 ├── XGB_scripts
 │   ├── test_XGB.py
 │   └── train_XGB.py
@@ -59,25 +59,24 @@ Esquema de directorios
 ├── run.sh
 └── tfmPBI.pbix 
 ```
-- Los directorios _ANN_sripts_ y _XGB_scripts_ contienen los scripts necesarios para entrenar los modelos y guardar los metadatos pertinentes en archivos _pickle_.  
-- _SQL_scripts_ contiene dos archivos SQL que endurecen las restricciones de la BD. Deben de ejecutarse después de ingestar los datos procesados.  
-- El directorio _pyspark_ contiene el dataset y el archivo .ipynb encargado del tratamiento de los datos y de su ingesta en la BD.  
-- En el directorio _pkl_ se guardan todos los archivos .pkl.  
-- El archivo _mlflow.ipynb_ registra todos los metadatos que obtiene de los archivos _pickle_.  
-- El archivo _run.sh_ se encarga de ejecutar todos los archivos de entreno y testeo de los modelos, y también del archivo _mlflow.ipynb_.
+- The _ANN_scripts_ and _XGB_scripts_ directories contain the scripts needed to train the models and save the relevant metadata in _pickle_ files.  
+- _SQL_scripts_ contains two SQL files that enforce database restrictions. They must be executed after ingesting the processed data.  
+- The _pyspark_ directory contains the dataset and the .ipynb file responsible for data processing and ingestion into the database.  
+- The _pkl_ directory stores all the .pkl files.  
+- The _mlflow.ipynb_ file logs all the metadata obtained from the _pickle_ files.  
+- The _run.sh_ file is responsible for running all the training and testing scripts for the models, as well as the _mlflow.ipynb_ file.
 
-Ejecución de la aplicación  
+Application Execution  
 ---
-1. Limpieza e ingesta de datos:
-    - Levantar el contenedor pyspark.
-    - Copiar ahí el Connector/J 8.0.
-    - Ejecutar el notebook ETL.ipynb.
-    - Ejecutar los scripts del directorio SQL_scripts.
-2. Entrenamiento, testeo y registro de metadatos:
-    - Construir la imagen de _python_ con el archivo _Dockerfile_.
-    - Levantar el contenedor _mlflow_.
-    - El archivo _run.sh_ se ejecutará automáticamente y entrenará los modelos, los testeará y registrará en MLflow.
-3. Visualizar por pantalla las predicciones realizadas a partir de los modelos que anteriormente han sido registrados en MLflow.
+1. Data Cleaning and Ingestion:
+    - Start the pyspark container.
+    - Copy the Connector/J 8.0 there.
+    - Run the ETL.ipynb notebook.
+    - Execute the scripts in the SQL_scripts directory.
+2. Training, Testing, and Metadata Registration:
+    - Build the _python_ image with the _Dockerfile_.
+    - Start the _mlflow_ container.
+    - The _run.sh_ file will run automatically, train the models, test them, and register them in MLflow.
+3. Display the predictions made from the models previously registered in MLflow.
     
-#### _Tres estudiantes han trabajado en este proyecto_.
-
+#### _Three students worked on this project_.
