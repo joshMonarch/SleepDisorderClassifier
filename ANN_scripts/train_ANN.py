@@ -23,7 +23,7 @@ class ModelTrainer:
             outputs = self.model(X_train_tensor)
             loss = self.loss_function(outputs, y_train_tensor)
             
-            # Calcular precision
+            # Calculating accuracy
             predicted_labels = torch.argmax(outputs, dim=1)
             accuracy = 100 * (predicted_labels == y_train_tensor).float().mean()
 
@@ -32,21 +32,21 @@ class ModelTrainer:
             loss.backward()
             self.optimizer.step()
             
-            # Guardar la perdida y la precision de cada epochs
+            # Saving the loss and accuracy per epoch
             self.losses.append(loss.item())
             self.accuracies.append(accuracy)
 
-            # Mostrar la perdida del entreno y la precision
+            # Showing loss and accuracy every 10 epochs
             if (epoch + 1) % 10 == 0:
                 print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.2f}%")
 
-            # Comprobar si la perdida ha sobrepasado el umbral establecido
+            # Validating loss thresholder
             if target_loss is not None and loss.item() <= target_loss:
                 print(f"Desired loss of {target_loss} reached. Stopping training.")
                 print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.2f}%")
                 break
 
-            # Comprobar si se se alcanza la precision establecida.
+            # Validating accuracy thresholder
             if target_accuracy is not None and accuracy.item() >= target_accuracy:
                 print(f"Desired accuracy of {target_accuracy}% reached. Stopping training.")
                 print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.2f}%")
@@ -55,14 +55,14 @@ class ModelTrainer:
     def plot_loss_accuracy(self):
         plt.figure(figsize=(10, 4))
         
-        # Incorporar pérdida al plot
+        # Adding losses
         plt.subplot(1, 2, 1)
         plt.plot(self.losses)
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.title('Training Loss')
         
-        # Incorporar precisión al plot
+        # Adding accuracies
         plt.subplot(1, 2, 2)
         plt.plot(self.accuracies)
         plt.xlabel('Epoch')
@@ -74,7 +74,7 @@ class ModelTrainer:
 
 if __name__ == "__main__":
 
-    # Establecer la conexión a la base de datos
+    # Create a connection to the database
     """connection = pymysql.connect(
         host=os.environ['DB_HOST'],
         user=os.environ['DB_USER'],
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         db='sleep'
     )
 
-    # Consultar los datos de una tabla específica
+    # Extracting data from db
     query = """
     SELECT f.*, d1.Gender, d2.Occupation, d3.BMI_Category
     FROM facts f
@@ -102,20 +102,20 @@ if __name__ == "__main__":
     data.set_index('Person_ID', inplace=True)
     cols = ['ID_Gender', 'ID_Occupation', 'ID_BMI_Category']
     data.drop(cols, axis=1, inplace=True)
-    # Cerrar la conexión a la base de datos
+    # Closing connection
     connection.close()
 
     columnas_one_hot = ["BMI_Category","Occupation","Gender"]
     data = pd.get_dummies(data, columns=columnas_one_hot)
 
-    # Dividir los datos en características (X) y variable objetivo (y)
+    # Spliting data into features (X) and target variable (y)
     X = data.drop("ID_Sleep_Disorder", axis=1)
     y = data["ID_Sleep_Disorder"]
 
-    # Dividir los datos en conjuntos de entrenamiento y prueba
+    # Generating trainig and testing data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-    # Imprimir la forma de los conjuntos de entrenamiento y prueba
+    # Showing shapes
     print("X_train shape:", X_train.shape)
     print("y_train shape:", y_train.shape)
     print("X_test shape:", X_test.shape)
@@ -133,13 +133,13 @@ if __name__ == "__main__":
     loss_function = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-    # Crear el objeto ModelTrainer y entrenar el modelo
+    # Inicializing ModelTrainer object and training
     trainer = ModelTrainer(model, loss_function, optimizer)
     trainer.train(X_train_tensor, y_train_tensor, num_epochs=3000)
     trainer.plot_loss_accuracy()
 
-    # Guardar las variables en un archivo
-    var_to_pkl = {"X_train_ann" : X_train, 
+    # Saving variables in pkl files
+    dict_var_to_pkl = {"X_train_ann" : X_train, 
                 "y_train_ann" : y_train,
                 "X_test_ann" : X_test, 
                 "y_test_ann" : y_test, 
@@ -153,6 +153,6 @@ if __name__ == "__main__":
                     } 
                 }
 
-    for nombre, var in var_to_pkl.items():
-        pd.to_pickle(var, f"./pkl/{nombre}.pkl")
+    for name, var in dict_var_to_pkl.items():
+        pd.to_pickle(var, f"./pkl/{name}.pkl")
 
