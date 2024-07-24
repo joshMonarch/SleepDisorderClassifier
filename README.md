@@ -57,7 +57,7 @@ Directory Structure
 ├── README.md  
 ├── requirements.txt  
 ├── run.sh
-└── tfmPBI.pbix 
+└── PBI.pbix 
 ```
 - The _ANN_scripts_ and _XGB_scripts_ directories contain the scripts needed to train the models and save the relevant metadata in _pickle_ files.  
 - _SQL_scripts_ contains two SQL files that enforce database restrictions. They must be executed after ingesting the processed data.  
